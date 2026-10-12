@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pothole Severity Assessment Framework</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .preview-box { height: 300px; object-fit: cover; background-color: #e9ecef; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <h2 class="text-center mb-4 fw-bold">Pothole Detection & Severity Assessment</h2>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-3">Upload Dashcam Image</h5>
+                    <input class="form-control mb-3" type="file" id="imageInput" accept="image/jpeg, image/png">
+                    <button class="btn btn-primary px-4" onclick="analyzePothole()">Run AI Analysis</button>
+                </div>
+            </div>
+
+            <div class="card shadow-sm d-none" id="resultsCard">
+                <div class="card-body">
+                    <h5 class="border-bottom pb-2 mb-3">Assessment Report</h5>
+                    <div class="row">
+                        <div class="col-md-6 text-center mb-3">
+                            <img id="imagePreview" src="" class="img-fluid rounded preview-box w-100" alt="Analyzed Road">
+                        </div>
+                        <div class="col-md-6 d-flex flex-column justify-content-center">
+                            <p class="mb-1 text-muted">Max Depth (Estimated)</p>
+                            <h4 id="depthOutput" class="fw-bold text-dark">-- cm</h4>
+                            
+                            <p class="mb-1 mt-3 text-muted">Physical Volume</p>
+                            <h4 id="volumeOutput" class="fw-bold text-dark">-- m³</h4>
+
+                            <p class="mb-1 mt-3 text-muted">Severity Rating</p>
+                            <h4 id="severityOutput" class="fw-bold">--</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function analyzePothole() {
+        const fileInput = document.getElementById('imageInput');
+        if (fileInput.files.length === 0) {
+            alert("Please select an image first.");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').src = e.target.result;
+            document.getElementById('resultsCard').classList.remove('d-none');
+        }
+        reader.readAsDataURL(file);
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/predict", true); 
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                
+                document.getElementById('depthOutput').innerText = response.max_depth_cm + " cm";
+                document.getElementById('volumeOutput').innerText = response.volume_m3 + " m³";
+                
+                const severityEl = document.getElementById('severityOutput');
+                severityEl.innerText = response.severity;
+                
+                if (response.severity.includes("CRITICAL")) severityEl.className = "fw-bold text-danger";
+                else if (response.severity.includes("MODERATE")) severityEl.className = "fw-bold text-warning";
+                else severityEl.className = "fw-bold text-success";
+            }
+        };
+        
+        xhr.send(formData); 
+    }
+</script>
+
+</body>
+</html>
