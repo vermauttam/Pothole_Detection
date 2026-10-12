@@ -2,7 +2,7 @@
 
 An end-to-end computer vision and web deployment pipeline designed to identify road hazards, estimate physical depth from 2D images, and calculate structural volume for automated severity classification. 
 
-Developed as an academic project at **Galgotias University** by **Uttam Verma**.
+Developed as an academic project at **Galgotias University** by **Uttam Verma & Shivam Choudhary**.
 
 ---
 
